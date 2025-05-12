@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="view_bom_overhead_form_inherit" model="ir.ui.view">
+        <field name="name">mrp.bom.overhead.form.inherit.cable</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp_overhead_cost.view_mrp_bom_form_view_overhead_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button type="object" name="generate_cable_cross_section_image" string="Generate Cable Cross Section"
+                        invisible="state != 'approved'"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_bom_form_inherit" model="ir.ui.view">
+        <field name="name">mrp.bom.form.inherit.cable</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="tds" string="Technical Data Sheet">
+                    <center>
+                        <field name="cable_2d_image" widget="image"/>
+                    </center>
+                    <hr/>
+                    <field name="tds_html" readonly="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

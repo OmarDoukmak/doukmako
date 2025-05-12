@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="cable_inherit_view_form" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.cable.cross.section</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="hype_cable_pro.view_order_form_cable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button type="object" name="generate_cable_cross_section_image" string="Generate CSD"
+                        invisible="hide_generate_2d_button"/>
+                <button type="object" name="generate_cable_cross_section_image" string="Re-Generate CSD"
+                        invisible="hide_regenerate_2d_button"/>
+                <button type="object" name="generate_cable_3d_model" string="Generate 3D Model"/>
+            </xpath>
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <group>
+<!--                    <field name="design_state" invisible="0"/>-->
+                    <field name="hide_generate_2d_button" invisible="1"/>
+                    <field name="hide_regenerate_2d_button" invisible="1"/>
+                </group>
+
+                <field name="cable_2d_image" widget="image" class="oe_avatar" options="{'zoom': true, 'size': [300,]}"/>
+                <field name="cable_3d_mesh"/>
+            </xpath>
+            <xpath expr="//tree[1]/field[8]" position="after">
+                <field name="conductor_dimension_id" column_invisible="1"/>
+                <field name="armour_no_wires" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
