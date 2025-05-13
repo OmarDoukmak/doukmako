@@ -1,0 +1,422 @@
+<odoo>
+    <template id="tds_html_template">
+        <t t-if="order.order_line">
+            <t t-set="thickness_layers"
+               t-value="['Phase Insulation','Neutral Insulation', 'Extruded Inner Sheath over Lay-up', 'Sheath', 'Armour']"/>
+            <t t-set="size_layers" t-value="['Phase Conductor','Neutral Conductor', 'Laying up with Fillers']"/>
+            <t t-set="non_metallic_tape_layers"
+               t-value="['Non Metallic Taping over Lay-up', 'Non-Metallic Tape over Lay-up', 'Non-Metallic Inner Barrier Screen', 'Non-Metallic Outer Barrier Screen', 'Metallic Inner Barrier Screen', 'Metallic Outer Barrier Screen']"/>
+            <t t-set="sheath_layers"
+               t-value="['Extruded Inner Sheath over Lay-up', 'Separation Sheath', 'Sheathing']"/>
+
+            <div class="tds-container" style="border:1px solid #ddd; padding:10px;">
+                <h3 style="text-align:center;" t-field="order.short_description">TDS Details</h3>
+                <table class="text-center" style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color:#f2f2f2; font-weight: bold;">
+                            <th style="border:1px solid #ddd; padding:5px;">
+                                <b>Cable Layer</b>
+                            </th>
+                            <th style="border:1px solid #ddd; padding:5px;">
+                                <b>Size (sq.mm)</b>
+                            </th>
+                            <th style="border:1px solid #ddd; padding:5px;">
+                                <b>Nominal<br/>Thickness (mm)
+                                </b>
+                            </th>
+                            <th style="border:1px solid #ddd; padding:5px;">
+                                <b>Minimum<br/>Thickness (mm)
+                                </b>
+                            </th>
+                            <th style="border:1px solid #ddd; padding:5px;">
+                                <b>Diameter Over<br/>(mm)
+                                </b>
+                            </th>
+                            <th style="border:1px solid #ddd; padding:5px;">
+                                <b>Weight<br/>(kgs/km)
+                                </b>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="order.order_line.filtered(lambda l: l.product_template_id.cable_type in ['phase_conductor', 'neutral_conductor', 'phase_insulation', 'neutral_insulation'])" t-as="line">
+                            <tr t-att-name="line.product_template_id.cable_type" style="font-size: 10pt; font-style: italic;">
+                                <td class="text-start" style="border:1px solid #ddd; padding:5px;">
+                                    <b style="font-size: 11pt; font-style: normal;"
+                                       t-out="line.product_template_id.name.split((order.product_standard.name if '5467' not in order.product_standard.name else '5467'))[0]"/>
+                                    <br/>
+                                    <!--Phase Conductor, Neutral Conductor-->
+                                    <t t-if="line.product_template_id.cable_type in ['phase_conductor', 'neutral_conductor']">
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Conductor Material' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Conductor Class Name' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                            <t t-out="value_id.product_attribute_value_id.short_name"/>
+                                            and
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Conductor Shape' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                        <br/>
+                                        <t t-out="line.conductor_dimension_id.no_wires"/>
+                                        x
+                                        <t t-out="line.conductor_dimension_id.wire_size"/>
+                                        mm
+                                        <br/>
+                                        <b>No. of Cores:</b>
+                                        <t t-out="round(line.product_uom_qty, 2)"/>
+                                    </t>
+
+                                    <!--Phase Insulation, Neutral Insulation-->
+                                    <t t-if="line.product_template_id.cable_type in ['phase_insulation', 'neutral_insulation']">
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Voltage' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                        <br/>
+
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Insulation Material' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                            <t t-if="'Insulation Material Type' not in value_id.attribute_id.name">to
+                                            </t>
+                                        </t>
+                                    </t>
+                                </td>
+
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-foreach="size_layers" t-as="size_layer">
+                                        <t t-set="size"
+                                           t-value="line.product_template_attribute_value_ids.filtered(lambda att: 'Size' in att.attribute_id.name)"/>
+                                        <t t-if="size_layer in line.product_template_id.name and size"
+                                           t-out="size.product_attribute_value_id.name"/>
+                                        <!--                                        '{:,}'.format(round(float(size.product_attribute_value_id.name), 2))-->
+                                    </t>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-foreach="thickness_layers" t-as="thickness_layer">
+                                        <t t-if="thickness_layer in line.product_template_id.name"
+                                           t-out="'{:,}'.format(round(line.thickness, 2))"/>
+                                    </t>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-foreach="thickness_layers" t-as="thickness_layer">
+                                        <t t-if="thickness_layer in line.product_template_id.name"
+                                           t-out="'{:,}'.format(round(line.thickness_min, 2))"/>
+                                    </t>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-if="'Special Additives' not in line.product_template_id.name" t-out="'{:,}'.format(round(line.diameter, 1))"/>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-out="'{:,}'.format(round(line.weight, 2))"/>
+                                </td>
+                            </tr>
+                        </t>
+
+                        <t t-set="filler_lines" t-value="order.order_line.filtered(lambda l: 'Laying up with Fillers' in l.product_template_id.name)"/>
+                        <tr t-if="len(filler_lines) > 0" t-att-name="line.product_template_id.cable_type" style="font-size: 10pt; font-style: italic;">
+                            <td class="text-start" style="border:1px solid #ddd; padding:5px;">
+                                <b style="font-size: 11pt; font-style: normal;"
+                                   t-out="filler_lines[0].product_template_id.name.split((order.product_standard.name if '5467' not in order.product_standard.name else '5467'))[0]"/>
+                                <br/>
+                                <t t-foreach="filler_lines" t-as="line">
+                                    <!-- Laying up with Fillers-->
+                                    <t t-if="'Laying up with Fillers' in line.product_template_id.name">
+                                        <t t-out="line.product_uom_qty"/> x
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Type' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Location' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                    </t>
+                                    <br/>
+                                </t>
+                            </td>
+
+                            <td style="border:1px solid #ddd; padding:5px;">
+                                <br/>
+                                <t t-foreach="filler_lines" t-as="line">
+                                    <t t-foreach="size_layers" t-as="size_layer">
+                                        <t t-set="size"
+                                           t-value="line.product_template_attribute_value_ids.filtered(lambda att: 'Size' in att.attribute_id.name)"/>
+                                        <t t-if="size_layer in line.product_template_id.name and size"
+                                           t-out="size.product_attribute_value_id.name"/>
+                                        <!--                                        '{:,}'.format(round(float(size.product_attribute_value_id.name), 2))-->
+                                    </t>
+                                    <br/>
+                                </t>
+                            </td>
+                            <td style="border:1px solid #ddd;"/>
+                            <td style="border:1px solid #ddd;"/>
+                            <td style="border:1px solid #ddd; padding:5px;">
+                                <t t-out="'{:,}'.format(round(filler_lines[0].diameter, 1))"/>
+                            </td>
+                            <td style="border:1px solid #ddd; padding:5px;">
+                                <br/>
+                                <t t-foreach="filler_lines" t-as="line">
+                                    <t t-out="'{:,}'.format(round(line.weight, 2))"/>
+                                    <br/>
+                                </t>
+                            </td>
+                        </tr>
+
+                        <t t-foreach="order.order_line.filtered(lambda l: 'Laying up with Fillers' not in l.product_template_id.name and l.product_template_id.cable_type not in ['phase_conductor', 'neutral_conductor', 'phase_insulation', 'neutral_insulation'])" t-as="line">
+                            <tr t-att-name="line.product_template_id.cable_type" style="font-size: 10pt; font-style: italic;">
+                                <td class="text-start" style="border:1px solid #ddd; padding:5px;">
+                                    <b style="font-size: 11pt; font-style: normal;"
+                                       t-out="line.product_template_id.name.split((order.product_standard.name if '5467' not in order.product_standard.name else '5467'))[0]"/>
+                                    <br/>
+                                    <!--Phase Conductor, Neutral Conductor-->
+                                    <t t-if="line.product_template_id.cable_type in ['phase_conductor', 'neutral_conductor']">
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Conductor Material' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Conductor Class Name' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                            <t t-out="value_id.product_attribute_value_id.short_name"/>
+                                            and
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Conductor Shape' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                        <br/>
+                                        <t t-out="line.conductor_dimension_id.no_wires"/>
+                                        x
+                                        <t t-out="line.conductor_dimension_id.wire_size"/>
+                                        mm
+                                        <br/>
+                                        <b>No. of Cores:</b>
+                                        <t t-out="round(line.product_uom_qty, 2)"/>
+                                    </t>
+
+                                    <!--Phase Insulation, Neutral Insulation-->
+                                    <t t-if="line.product_template_id.cable_type in ['phase_insulation', 'neutral_insulation']">
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Voltage' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                        <br/>
+
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Insulation Material' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                            <t t-if="'Insulation Material Type' not in value_id.attribute_id.name">to
+                                            </t>
+                                        </t>
+                                    </t>
+
+                                    <!-- Laying up with Fillers-->
+                                    <t t-if="'Laying up with Fillers' in line.product_template_id.name">
+                                        <t t-out="line.product_uom_qty"/> x
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Type' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Location' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                    </t>
+
+                                    <!--Non-Metallic Taping over Lay-up, Non-Metallic Tape over Lay-up, Non-Metallic Inner Barrier Screen, Non-Metallic Outer Barrier Screen, Metallic Inner Barrier Screen, Metallic Outer Barrier Screen-->
+                                    <t t-set="tape_layer_break" t-value="True"/>
+                                    <t t-foreach="non_metallic_tape_layers" t-as="tape_layer">
+                                        <t t-if="tape_layer in line.product_template_id.name and tape_layer_break">
+                                            <t t-set="tape_layer_break" t-value="False"/>
+                                            <t t-out="line.product_uom_qty"/>
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Screen' in att.attribute_id.name)"
+                                               t-as="value_id">
+                                                x
+                                                <t t-if="'Non' in value_id.product_attribute_value_id.attribute_id.name"
+                                                   t-out="value_id.product_attribute_value_id.name"/>
+                                                <t t-elif="'Material' in value_id.product_attribute_value_id.attribute_id.name"
+                                                   t-out="value_id.product_attribute_value_id.name"/>
+                                            </t>
+                                            <br/>
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Thickness' in att.attribute_id.name)"
+                                               t-as="value_id">
+                                                <t t-out="value_id.product_attribute_value_id.name"/> x
+                                            </t>
+
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Width' in att.attribute_id.name)"
+                                               t-as="value_id">
+                                                <t t-out="value_id.product_attribute_value_id.name"/>
+                                            </t>
+                                            mm with
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Overlap' in att.attribute_id.name)"
+                                               t-as="value_id">
+                                                <t t-out="str(abs(int(value_id.product_attribute_value_id.name))) + '%'"/>
+                                                <t t-out="'Overlap' if int(value_id.product_attribute_value_id.name) >= 0 else 'gap'"/>
+                                            </t>
+
+                                        </t>
+                                    </t>
+                                    <t t-set="tape_layer_break" t-value="True"/>
+
+                                    <!-- Taped Inner Sheath-->
+                                    <t t-if="'Taped Inner Sheath' in line.product_template_id.name">
+                                        <t t-out="line.product_uom_qty"/>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Inner Sheath Tape' == att.attribute_id.name)"
+                                           t-as="value_id">
+                                            x
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                        <br/>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Thickness' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                            x
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Width' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                        with
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Overlap' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="str(abs(int(value_id.product_attribute_value_id.name))) + '%'"/>
+                                            <t t-out="'Overlap' if int(value_id.product_attribute_value_id.name) >= 0 else 'gap'"/>
+                                        </t>
+
+                                    </t>
+
+                                    <!-- Extruded Inner Sheath over Lay-up, Separation Sheath, Sheathing-->
+                                    <t t-foreach="sheath_layers" t-as="sheath_layer">
+                                        <t t-if="sheath_layer in line.product_template_id.name">
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Inner Sheath Material' == att.attribute_id.name or 'Bedding Material' == att.attribute_id.name or 'Sheathing Material' == att.attribute_id.name)"
+                                               t-as="value_id">
+                                                <t t-out="value_id.product_attribute_value_id.name"/>
+                                            </t>
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Inner Sheath Material Type' == att.attribute_id.name or 'Bedding Material Type' == att.attribute_id.name or 'Sheathing Material Type' == att.attribute_id.name)"
+                                               t-as="value_id">
+                                                to
+                                                <t t-out="value_id.product_attribute_value_id.name"/>
+                                            </t>
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Extrusion Type' == att.attribute_id.name)"
+                                               t-as="value_id">
+                                                ,
+                                                <t t-out="value_id.product_attribute_value_id.name"/>
+                                                Extrusion
+                                            </t>
+                                            <br/>
+                                            <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Colour' in att.attribute_id.name or 'Color' in att.attribute_id.name)"
+                                               t-as="value_id">
+                                                <t t-out="value_id.product_attribute_value_id.name"/>
+                                                <t t-set="curr_color" t-value="value_id.product_attribute_value_id.name"/>
+                                            </t>
+                                            <t t-if="curr_color != 'Black'" t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Master Batch' in att.attribute_id.name)"
+                                               t-as="value_id">
+                                                with
+                                                <t t-out="value_id.product_attribute_value_id.name"/>
+                                            </t>
+                                        </t>
+                                    </t>
+
+                                    <!-- Lead Sheath-->
+                                    <t t-if="'Lead Sheath' in line.product_template_id.name">
+                                        As per <t t-if="order.lead_sheath_std" t-out="order.sudo()._fields['lead_sheath_std'].convert_to_export(order['lead_sheath_std'], order)"/>
+                                        <br/>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Metal Sheath Material' == att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                    </t>
+
+                                    <!-- Armouring-->
+                                    <t t-if="'Armouring' in line.product_template_id.name">
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Material' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Armour Type' == att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Armour Type Shape' == att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                            <t t-set="armour_shape" t-value="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                        <br/>
+                                        <b>No. of Wires:</b>
+                                        <t t-out="line.armour_no_wires"/>
+                                        <br/>
+
+                                        <t t-out="line.thickness"/> mm
+
+                                        <t t-if="armour_shape == 'Strip / Flat'" t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Tape Width' in att.attribute_id.name)"
+                                           t-as="value_id">
+                                            x <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+
+                                    </t>
+
+                                    <!-- Special Additives-->
+                                    <t t-if="'Special Additives' in line.product_template_id.name">
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Additive Type' == att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>,
+                                        </t>
+                                        <t t-foreach="line.product_template_attribute_value_ids.filtered(lambda att: 'Additive Percent' == att.attribute_id.name)"
+                                           t-as="value_id">
+                                            <t t-out="value_id.product_attribute_value_id.name"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-foreach="size_layers" t-as="size_layer">
+                                        <t t-set="size"
+                                           t-value="line.product_template_attribute_value_ids.filtered(lambda att: 'Size' in att.attribute_id.name)"/>
+                                        <t t-if="size_layer in line.product_template_id.name and size"
+                                           t-out="size.product_attribute_value_id.name"/>
+                                        <!--                                        '{:,}'.format(round(float(size.product_attribute_value_id.name), 2))-->
+                                    </t>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-foreach="thickness_layers" t-as="thickness_layer">
+                                        <t t-if="thickness_layer in line.product_template_id.name"
+                                           t-out="'{:,}'.format(round(line.thickness, 2))"/>
+                                    </t>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-foreach="thickness_layers" t-as="thickness_layer">
+                                        <t t-if="thickness_layer in line.product_template_id.name"
+                                           t-out="'{:,}'.format(round(line.thickness_min, 2))"/>
+                                    </t>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-if="'Special Additives' not in line.product_template_id.name" t-out="'{:,}'.format(round(line.diameter, 1))"/>
+                                </td>
+                                <td style="border:1px solid #ddd; padding:5px;">
+                                    <t t-out="'{:,}'.format(round(line.weight, 2))"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <div class="mt-3" t-if="order.order_line.filtered(lambda l: l.product_template_id.cable_layer_type_id)">
+                    <b>Overall Diameter of the Cable - </b>
+                    <span style="font-size: 10pt; font-style: italic;" t-out="'{:,}'.format(round(max(order.order_line.mapped('diameter')), 1))"/>
+                    <span style="font-size: 10pt; font-style: italic;">mm</span>
+                    <br/>
+                    <b>Net Weight of the cable kgs / km - </b>
+                    <span style="font-size: 10pt; font-style: italic;" t-out="'{:,}'.format(round(order.total_weight, 2))"/>
+                    <span style="font-size: 10pt; font-style: italic;">kgs/km</span>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="cable_layer_type_tree_view" model="ir.ui.view">
+            <field name="name">cable.layer.type.tree</field>
+            <field name="model">cable.layer.type</field>
+            <field name="arch" type="xml">
+                <tree string="Cable Layer Type" editable="bottom">
+                    <field name="product_id"/>
+                    <field name="name" required="1"/>
+                    <field name="cable_type" required="1"/>
+                    <field name="csd_element_name"/>
+                    <field name="display_type"/>
+                    <field name="display_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="cable_layer_type_filter" model="ir.ui.view">
+            <field name="name">cable.layer.type.search</field>
+            <field name="model">cable.layer.type</field>
+            <field name="type">search</field>
+            <field name="arch" type="xml">
+                <search string="Top Search">
+                    <group>
+                        <field name="name"/>
+                        <field name="cable_type"/>
+                        <field name="csd_element_name"/>
+                        <field name="display_type"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="cable_layer_type_form_action" model="ir.actions.act_window">
+            <field name="name">Cable Layer Type</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">cable.layer.type</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="cable_layer_type_tree_view"/>
+            <field name="search_view_id" ref="cable_layer_type_filter"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to add a new Cable Layer Type
+                </p>
+            </field>
+        </record>
+
+        <menuitem action="cable_layer_type_form_action"
+                  id="menu_cable_layer_type_form_action"
+                  parent="hype_cable_pro.menu_cable_pro_conf" />
+    </data>
+</odoo>
